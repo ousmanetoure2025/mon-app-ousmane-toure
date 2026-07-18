@@ -1,0 +1,44 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  build-test-push:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      packages: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Installer Helm
+        uses: azure/setup-helm@v4
+
+      - name: Lint du chart Helm
+        run: helm lint helm/mon-app
+
+      - name: Build de l'image
+        run: docker build -t ghcr.io/ousmanetoure2025/mon-app-ousmane-toure:${{ github.sha }} .
+
+      - name: Connexion au registre
+        run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+
+      - name: Push de l'image
+        run: docker push ghcr.io/ousmanetoure2025/mon-app-ousmane-toure:${{ github.sha }}
+
+      - name: Scanner l'image (Trivy)
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: ghcr.io/ousmanetoure2025/mon-app-ousmane-toure:${{ github.sha }}
+          severity: CRITICAL,HIGH
+          exit-code: "0"
+
+      - name: Mettre à jour values.yaml
+        run: |
+          sed -i "s/tag: .*/tag: \"${{ github.sha }}\"/" helm/mon-app/values.yaml
+          git config user.email "ci-bot@example.com"
+          git config user.name "CI Bot"
+          git commit -am "chore: bump image to ${{ github.sha }}" || echo "rien à committer"
+          git push
