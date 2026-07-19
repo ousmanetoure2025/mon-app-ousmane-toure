@@ -9,7 +9,7 @@ replicaCount: 1
 image:
   repository: ghcr.io/ousmanetoure2025/mon-app-ousmane-toure
   pullPolicy: IfNotPresent
-  tag: "dc79937f907314b3c20b12c4d5d21114d9dc544e"
+  tag: "9400e22dc4b9d12a5f7dea4e5da818fabdb51e5f"
 
 # This is for the secrets for pulling an image from a private repository more information can be found here: https://kubernetes.io/docs/tasks/configure-pod-container/pull-image-private-registry/
 imagePullSecrets: []
